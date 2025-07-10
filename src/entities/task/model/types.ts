@@ -1,13 +1,13 @@
 export type TaskItem = {
-	id: string;
-	listId: string;
-	title: string;
-	description?: string;
-	completed: boolean;
+  id: string;
+  listId: string;
+  title: string;
+  description?: string;
+  completed: boolean;
 };
 
 export type UpdateTaskData = Partial<{
-	title: string;
-	description: string;
-	completed: boolean;
+  title: string;
+  description: string;
+  completed: boolean;
 }>;

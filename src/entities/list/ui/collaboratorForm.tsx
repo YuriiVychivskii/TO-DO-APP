@@ -7,78 +7,78 @@ import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 type Inputs = {
-	collaboratorId: string;
-	role: 'admin' | 'viewer';
+  collaboratorId: string;
+  role: 'admin' | 'viewer';
 };
 
 type Props = {
-	listId: string;
+  listId: string;
 };
 
 export default function CollaboratorForm({ listId }: Props) {
-	const {
-		register,
-		handleSubmit,
-		reset,
-		formState: { errors, isSubmitting },
-		setError,
-	} = useForm<Inputs>({
-		defaultValues: {
-			collaboratorId: '',
-			role: 'viewer',
-		},
-	});
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<Inputs>({
+    defaultValues: {
+      collaboratorId: '',
+      role: 'viewer',
+    },
+  });
 
-	const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-	const processForm: SubmitHandler<Inputs> = async data => {
-		setSuccess(null);
+  const processForm: SubmitHandler<Inputs> = async (data) => {
+    setSuccess(null);
 
-		try {
-			await addCollaborator(listId, data.collaboratorId.trim(), data.role);
-			setSuccess('Collaborator added successfully');
-			reset();
-		} catch (error) {
-			setError('collaboratorId', {
-				type: 'manual',
-				message: (error as Error).message || 'Failed to add collaborator',
-			});
-		}
-	};
+    try {
+      await addCollaborator(listId, data.collaboratorId.trim(), data.role);
+      setSuccess('Collaborator added successfully');
+      reset();
+    } catch (error) {
+      setError('collaboratorId', {
+        type: 'manual',
+        message: (error as Error).message || 'Failed to add collaborator',
+      });
+    }
+  };
 
-	return (
-		<form
-			onSubmit={handleSubmit(processForm)}
-			className='space-y-2 mx-auto rounded-md shadow-md p-4'
-		>
-			<div className='flex gap-4 w-full'>
-				<Input
-					{...register('collaboratorId', { required: 'User ID is required' })}
-					placeholder='User ID'
-					className='w-1/2'
-					disabled={isSubmitting}
-				/>
-				<select
-					{...register('role')}
-					className='w-1/2 p-2 border rounded'
-					disabled={isSubmitting}
-				>
-					<option value='viewer'>Viewer</option>
-					<option value='admin'>Admin</option>
-				</select>
-			</div>
+  return (
+    <form
+      onSubmit={handleSubmit(processForm)}
+      className="mx-auto space-y-2 rounded-md p-4 shadow-md"
+    >
+      <div className="flex w-full gap-4">
+        <Input
+          {...register('collaboratorId', { required: 'User ID is required' })}
+          placeholder="User ID"
+          className="w-1/2"
+          disabled={isSubmitting}
+        />
+        <select
+          {...register('role')}
+          className="w-1/2 rounded border p-2"
+          disabled={isSubmitting}
+        >
+          <option value="viewer">Viewer</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
 
-			{errors.collaboratorId && (
-				<p className='text-destructive text-sm'>
-					{errors.collaboratorId.message}
-				</p>
-			)}
+      {errors.collaboratorId && (
+        <p className="text-destructive text-sm">
+          {errors.collaboratorId.message}
+        </p>
+      )}
 
-			<Button type='submit' className='w-full' disabled={isSubmitting}>
-				{isSubmitting ? 'Adding...' : 'Add Collaborator'}
-			</Button>
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? 'Adding...' : 'Add Collaborator'}
+      </Button>
 
-			{success && <p className='text-green-600 text-sm'>{success}</p>}
-		</form>
-	);
+      {success && <p className="text-sm text-green-600">{success}</p>}
+    </form>
+  );
 }
