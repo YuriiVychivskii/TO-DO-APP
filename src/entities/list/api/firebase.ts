@@ -5,6 +5,7 @@ import {
 	deleteDoc,
 	doc,
 	DocumentData,
+	getDoc,
 	getDocs,
 	query,
 	QueryDocumentSnapshot,
@@ -12,12 +13,26 @@ import {
 	updateDoc,
 	where,
 } from 'firebase/firestore';
+
 import { CreateListDTO, ListItem, ListItemFromDB } from '../model/types';
+
+function mapDocToListItem(doc: QueryDocumentSnapshot<DocumentData>): ListItem {
+	const data = doc.data() as ListItemFromDB;
+
+	return {
+		id: doc.id,
+		...data,
+		createdAt:
+			typeof data.createdAt === 'string'
+				? data.createdAt
+				: data.createdAt.toDate().toISOString(),
+	};
+}
 
 export async function createList({
 	userId,
 	title,
-}: CreateListDTO): Promise<string> {
+}: CreateListDTO): Promise<ListItem> {
 	if (!userId) throw new Error('User ID is required');
 	if (!title?.trim()) throw new Error('Title is required');
 
@@ -31,20 +46,14 @@ export async function createList({
 			},
 		});
 
-		return docRef.id;
+		const docSnap = await getDoc(docRef);
+		if (!docSnap.exists()) throw new Error('Failed to fetch created list');
+
+		return mapDocToListItem(docSnap);
 	} catch (error) {
 		console.error('Error creating list:', error);
 		throw new Error('Failed to create list');
 	}
-}
-
-function mapDocToListItem(doc: QueryDocumentSnapshot<DocumentData>): ListItem {
-	const data = doc.data() as ListItemFromDB;
-
-	return {
-		id: doc.id,
-		...data,
-	};
 }
 
 export async function findListsForUser(userId: string): Promise<ListItem[]> {
