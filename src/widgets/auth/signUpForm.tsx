@@ -1,9 +1,11 @@
 'use client';
+import { registerUser } from '@/features/auth/model/actions';
 import { SignUpSchema } from '@/features/auth/model/schema';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { FaArrowLeft } from 'react-icons/fa';
@@ -13,12 +15,7 @@ import { z } from 'zod';
 type Inputs = z.infer<typeof SignUpSchema>;
 
 export default function SignUpForm() {
-	const {
-		register,
-		handleSubmit,
-		reset,
-		formState: { errors, isSubmitting },
-	} = useForm<Inputs>({
+	const form = useForm<Inputs>({
 		resolver: zodResolver(SignUpSchema),
 		defaultValues: {
 			name: '',
@@ -27,11 +24,36 @@ export default function SignUpForm() {
 			confirmPassword: '',
 		},
 	});
+
+	const {
+		register,
+		reset,
+		handleSubmit,
+		formState: { errors, isSubmitting },
+	} = form;
+
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const router = useRouter();
 
 	const processForm: SubmitHandler<Inputs> = async data => {
-		// Auth logic
+		const { name, email, password, confirmPassword } = data;
+		try {
+			await registerUser({
+				name,
+				email,
+				password,
+				confirmPassword,
+			});
+
+			reset();
+			router.push('/dashboard');
+		} catch (error) {
+			form.setError('root', {
+				type: 'manual',
+				message: (error as Error).message,
+			});
+		}
 	};
 
 	return (
@@ -146,6 +168,12 @@ export default function SignUpForm() {
 				<FaArrowLeft className='h-4 w-4' />
 				<p>Back home</p>
 			</Link>
+
+			{form.formState.errors.root?.message && (
+				<p className='text-destructive text-sm mt-2'>
+					{form.formState.errors.root.message}
+				</p>
+			)}
 		</>
 	);
 }
